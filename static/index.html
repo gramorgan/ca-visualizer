@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CA World</title>
+        <script src="static/main.js"></script>
+    </head>
+    <body>
+        <style>
+            #input-container {
+                margin: 10px;
+            }
+            #canvas {
+                width: 400px;
+                height: 400px;
+                border: 1px solid black;
+            }
+        </style>
+        <div id="input-container">
+            <label for="n_input">N</label>
+            <input type="number" name="n_input" id="n_input" value="100" min=0>
+            <label for="p_input">p</label>
+            <input type="number" name="p_input" id="p_input" value="0.333" min="0", max="1" step="0.001">
+            <label for="q_input">q</label>
+            <input type="number" name="q_input" id="q_input" value="0.333" min="0" max="1" step="0.001">
+
+            <button type="button" id="start_ca">Start CA</button>
+        </div>
+        <div>
+            <canvas id="canvas">
+            </canvas>
+        </div>
+    </body>
+</html>
