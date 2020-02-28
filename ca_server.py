@@ -21,13 +21,9 @@ async def handle_websocket(request):
                 n = payload['n']
                 p = payload['p']
                 q = payload['q']
-                # reset graph
+                # reset graph and set new params
                 await ws.send_json({
-                    'type': 'reset',
-                })
-                # send new params
-                await ws.send_json({
-                    'type': 'params',
+                    'type': 'setup',
                     'n': n,
                 })
                 # send each frame as they're generated
@@ -36,6 +32,9 @@ async def handle_websocket(request):
                         'type': 'data',
                         'value': frame,
                     })
+                await ws.send_json({
+                    'type': 'finish',
+                })
         elif msg.type == aiohttp.WSMsgType.ERROR:
             print('ws connection closed with exception %s' %
                 ws.exception())

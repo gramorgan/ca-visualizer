@@ -1,25 +1,30 @@
 window.addEventListener('load', () => {
+    const n_input = document.getElementById('n_input');
+    const p_input = document.getElementById('p_input');
+    const q_input = document.getElementById('q_input');
+    const start_ca_button = document.getElementById('start_ca');
+    const frame_slider = document.getElementById('frame_slider');
+
     const chart = new CAChart();
     const socket = new ReconnectingJSONWebsocket('ws://localhost:8080/socket');
 
     socket.onmessage = msg => {
         switch (msg.type) {
-            case 'reset':
+            case 'setup':
                 chart.reset();
-                break;
-            case 'params':
                 chart.set_params(msg.n);
+                frame_slider.disabled = true;
                 break;
             case 'data':
-                chart.draw(msg.value);
+                chart.add_frame(msg.value);
                 break;
+            case 'finish':
+                const max_frames = chart.frames.length-1;
+                frame_slider.setAttribute('max', max_frames);
+                frame_slider.disabled = false;
+                frame_slider.value = max_frames;
         }
     }
-
-    const n_input = document.getElementById('n_input');
-    const p_input = document.getElementById('p_input');
-    const q_input = document.getElementById('q_input');
-    const start_ca_button = document.getElementById('start_ca');
 
     start_ca_button.addEventListener('click', () => {
         socket.send({
@@ -33,19 +38,71 @@ window.addEventListener('load', () => {
     p_input.addEventListener('input', e => {
         p = parseFloat(e.target.value);
         q = parseFloat(q_input.value);
-        if (p > 0.5 && q > 0.5) {
+        if (p + q > 1) {
             q_input.value = (1-p).toFixed(3);
         }
     });
     q_input.addEventListener('input', e => {
         q = parseFloat(e.target.value);
         p = parseFloat(p_input.value);
-        if (p > 0.5 && q > 0.5) {
+        if (p + q > 1) {
             p_input.value = (1-q).toFixed(3);
         }
     });
 
+    frame_slider.addEventListener('input', e => {
+        const frame_num = parseInt(e.target.value);
+        chart.set_frame(frame_num);
+    });
 });
+
+class CAChart {
+    constructor() {
+        this.colors = [
+            '#FF0000',
+            '#00FF00',
+            '#0000FF',
+        ];
+        this.frames = [];
+
+        this.n = null;
+
+        this.canvas = document.getElementById('canvas');
+        this.ctx = canvas.getContext('2d');
+        this.w = canvas.clientWidth;
+        this.h = canvas.clientHeight;
+
+        // set canvas size to css-generated size
+        this.canvas.width = this.w;
+        this.canvas.height = this.h;
+    }
+
+    set_params(n) {
+        this.n = n;
+    }
+
+    reset() {
+        this.frames = [];
+        this.ctx.clearRect(0, 0, this.w, this.h);
+    }
+
+    add_frame(frame) {
+        const cell_width = this.w / this.n;
+        const cell_height = this.h / this.n;
+        for (let r = 0; r < this.n; r++) {
+            for (let c = 0; c < this.n; c++) {
+                const val = frame[r][c];
+                this.ctx.fillStyle = this.colors[val-1];
+                this.ctx.fillRect(cell_width*c, cell_height*r, cell_width, cell_height);
+            }
+        }
+        this.frames.push(this.ctx.getImageData(0, 0, this.w, this.h));
+    }
+    
+    set_frame(frame_num) {
+        this.ctx.putImageData(this.frames[frame_num], 0, 0);
+    }
+}
 
 class ReconnectingJSONWebsocket {
     constructor(addr) {
@@ -57,7 +114,7 @@ class ReconnectingJSONWebsocket {
         this._socket = new WebSocket(this.addr);
 
         this._socket.addEventListener('open', function (event) {
-            console.log('Socket connected')
+            console.log('Socket connected');
         });
 
         this._socket.onclose = e => {
@@ -79,50 +136,9 @@ class ReconnectingJSONWebsocket {
     }
     send(msg) {
         if (this._socket.readyState != 1) {
-            console.warn('Send called before socket is ready');
+            console.warn('Send called before socket was ready');
             return;
         }
         this._socket.send( JSON.stringify(msg) );
-    }
-}
-
-class CAChart {
-    constructor() {
-        this.colors = [
-            '#FF0000',
-            '#00FF00',
-            '#0000FF',
-        ];
-
-        this.n = null;
-
-        this.canvas = document.getElementById('canvas');
-        this.ctx = canvas.getContext('2d');
-        this.w = canvas.clientWidth;
-        this.h = canvas.clientHeight;
-
-        // set canvas size to css-generated size
-        this.canvas.width = this.w;
-        this.canvas.height = this.h;
-    }
-
-    set_params(n) {
-        this.n = n;
-    }
-
-    reset() {
-        this.ctx.clearRect(0, 0, this.w, this.h);
-    }
-
-    draw(vals) {
-        const cell_width = this.w / this.n;
-        const cell_height = this.h / this.n;
-        for (let r = 0; r < this.n; r++) {
-            for (let c = 0; c < this.n; c++) {
-                const val = vals[r][c];
-                this.ctx.fillStyle = this.colors[val-1];
-                this.ctx.fillRect(cell_width*c, cell_height*r, cell_width, cell_height);
-            }
-        }
     }
 }
