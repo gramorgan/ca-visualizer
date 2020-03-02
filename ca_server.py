@@ -1,9 +1,29 @@
 import aiohttp
 from aiohttp import web
-from ca_world import gen_ca
+import ca_eco
+from multiprocessing import Process, Pipe
+import asyncio
+import concurrent.futures
 
 async def handle_index(request):
     return web.FileResponse('./static/index.html')
+
+async def poll_results(pipe, ws):
+    while True:
+        if not pipe.poll():
+            await asyncio.sleep(0.1)
+            continue
+        frame = pipe.recv()
+        if frame is None:
+            await ws.send_json({
+                'type': 'finish',
+            })
+            return
+        else:
+            await ws.send_json({
+                'type': 'data',
+                'value': frame,
+            })
 
 async def handle_websocket(request):
     ws = web.WebSocketResponse()
@@ -11,30 +31,40 @@ async def handle_websocket(request):
 
     print('websocket connection opened')
 
+    poll_task = None
+    pipe = None
+
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
                 await ws.close()
                 continue
             payload = msg.json()
-            if payload['type'] == 'start_ca':
+            if payload['type'] == 'start':
+                if poll_task and not poll_task.done():
+                    pipe.send(None)
+                    await poll_task
+
                 n = payload['n']
                 p = payload['p']
                 q = payload['q']
+                num_its = payload['num_its']
                 # reset graph and set new params
                 await ws.send_json({
                     'type': 'setup',
                     'n': n,
                 })
-                # send each frame as they're generated
-                async for frame in gen_ca(n, p, q):
-                    await ws.send_json({
-                        'type': 'data',
-                        'value': frame,
-                    })
-                await ws.send_json({
-                    'type': 'finish',
-                })
+
+                conn1, conn2 = Pipe(True)
+                pipe = conn1
+                Process(target=ca_eco.gen_ca, args=(n, p, q, num_its, conn2)).start()
+                poll_task = asyncio.create_task(poll_results(pipe, ws))
+
+            elif payload['type'] == 'stop':
+                if pipe:
+                    pipe.send(None)
+                    await poll_task
+
         elif msg.type == aiohttp.WSMsgType.ERROR:
             print('ws connection closed with exception %s' %
                 ws.exception())

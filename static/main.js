@@ -2,7 +2,9 @@ window.addEventListener('load', () => {
     const n_input = document.getElementById('n_input');
     const p_input = document.getElementById('p_input');
     const q_input = document.getElementById('q_input');
+    const num_its_input = document.getElementById('num_its_input');
     const start_ca_button = document.getElementById('start_ca');
+    const stop_ca_button = document.getElementById('stop_ca');
     const frame_slider = document.getElementById('frame_slider');
 
     const chart = new CAChart();
@@ -28,10 +30,16 @@ window.addEventListener('load', () => {
 
     start_ca_button.addEventListener('click', () => {
         socket.send({
-            type: 'start_ca',
+            type: 'start',
             n: parseInt(n_input.value),
             p: parseFloat(p_input.value),
             q: parseFloat(q_input.value),
+            num_its: parseInt(num_its_input.value),
+        });
+    });
+    stop_ca_button.addEventListener('click', () => {
+        socket.send({
+            type: 'stop',
         });
     });
 

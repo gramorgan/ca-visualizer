@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy.random import rand, randint
 from copy import deepcopy
 import asyncio
@@ -61,21 +60,21 @@ def time_step(W):
             M[i, j, 1] -= 1
     return M  
 
-async def gen_ca(n, p, q):
-    loop = asyncio.get_running_loop()
-    executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
+async def gen_ca(n, p, q, results_queue):
 
     # Initialize the world.
     W = init_world(n, p, q)
 
-    yield W[:, :, 0].tolist()
+    results_queue.put( W[:, :, 0].tolist() )
     # A maximum of 100 iterations if steady state isn't found first.
     for im in range(1, 100):
-        M = await loop.run_in_executor(executor, time_step, W)
+        M = time_step(W)
         
         # Check to see if we've likely entered a steady state.
         if np.array_equal(W[:, :, 0], M[:, :, 0]):  break
                 
         W = deepcopy(M)
         
-        yield W[:, :, 0].tolist()
+        results_queue.put( W[:, :, 0].tolist() )
+    
+    results_queue.put(None)
