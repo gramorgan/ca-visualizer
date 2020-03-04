@@ -37,6 +37,9 @@ async def handle_websocket(request):
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
+                if pipe:
+                    pipe.send(None)
+                    await poll_task
                 await ws.close()
                 continue
             payload = msg.json()
@@ -48,7 +51,6 @@ async def handle_websocket(request):
                 n = payload['n']
                 p = payload['p']
                 q = payload['q']
-                num_its = payload['num_its']
                 # reset graph and set new params
                 await ws.send_json({
                     'type': 'setup',
@@ -57,7 +59,7 @@ async def handle_websocket(request):
 
                 conn1, conn2 = Pipe(True)
                 pipe = conn1
-                Process(target=ca_eco.gen_ca, args=(n, p, q, num_its, conn2)).start()
+                Process(target=ca_eco.gen_ca, args=(n, p, q, conn2)).start()
                 poll_task = asyncio.create_task(poll_results(pipe, ws))
 
             elif payload['type'] == 'stop':

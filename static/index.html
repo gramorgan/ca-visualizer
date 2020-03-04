@@ -15,6 +15,9 @@
             #input-container > div  > input {
                 margin: 5px 10px 5px 0;
             }
+            #input-container > div  > button {
+                margin: 5px 10px 5px 0;
+            }
             #canvas-container {
                 width: 400px;
             }
@@ -37,10 +40,12 @@
                 <input type="number" name="q_input" id="q_input" value="0.333" min="0" max="1" step="0.001">
             </div>
             <div>
-                <label for="num_its">num iterations</label>
-                <input type="number" name="num_its" id="num_its_input" value="250" min="0">
                 <button type="button" id="start_ca">Start CA</button>
                 <button type="button" id="stop_ca">Stop CA</button>
+                <span>
+                    <span>generation number: </span>
+                    <span id="gen_nr">0</span>
+                </span>
             </div>
         </div>
         <div id="canvas-container">

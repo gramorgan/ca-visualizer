@@ -456,7 +456,7 @@ def time_step(W):
     #print('W[:, :, 1].max() =', W[:, :, 1].max())
     return W
 
-def gen_ca(n, p, q, num_its, pipe):
+def gen_ca(n, p, q, pipe):
 
     # Initialize the world.
     W = init_world(n, p, q)
@@ -464,11 +464,11 @@ def gen_ca(n, p, q, num_its, pipe):
     pipe.send( W[:, :, 0].tolist() )
 
     # Iteration loop.
-    for im in range(1, num_its):
-        W = time_step(W)
-
+    while True:
         if pipe.poll() and pipe.recv() == None:
             break
+
+        W = time_step(W)
 
         pipe.send( W[:, :, 0].tolist() )
     

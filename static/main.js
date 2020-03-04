@@ -1,11 +1,12 @@
 window.addEventListener('load', () => {
-    const n_input = document.getElementById('n_input');
-    const p_input = document.getElementById('p_input');
-    const q_input = document.getElementById('q_input');
-    const num_its_input = document.getElementById('num_its_input');
+    const n_input         = document.getElementById('n_input');
+    const p_input         = document.getElementById('p_input');
+    const q_input         = document.getElementById('q_input');
     const start_ca_button = document.getElementById('start_ca');
-    const stop_ca_button = document.getElementById('stop_ca');
-    const frame_slider = document.getElementById('frame_slider');
+    const stop_ca_button  = document.getElementById('stop_ca');
+    const frame_slider    = document.getElementById('frame_slider');
+
+    const gen_nr = document.getElementById('gen_nr');
 
     const chart = new CAChart();
     const socket = new ReconnectingJSONWebsocket('ws://localhost:8080/socket');
@@ -16,12 +17,14 @@ window.addEventListener('load', () => {
                 chart.reset();
                 chart.set_params(msg.n);
                 frame_slider.disabled = true;
+                gen_nr.innerText = 0;
                 break;
             case 'data':
                 chart.add_frame(msg.value);
+                gen_nr.innerText = chart.num_frames();
                 break;
             case 'finish':
-                const max_frames = chart.frames.length-1;
+                const max_frames = chart.num_frames()-1;
                 frame_slider.setAttribute('max', max_frames);
                 frame_slider.disabled = false;
                 frame_slider.value = max_frames;
@@ -34,7 +37,6 @@ window.addEventListener('load', () => {
             n: parseInt(n_input.value),
             p: parseFloat(p_input.value),
             q: parseFloat(q_input.value),
-            num_its: parseInt(num_its_input.value),
         });
     });
     stop_ca_button.addEventListener('click', () => {
@@ -61,15 +63,16 @@ window.addEventListener('load', () => {
     frame_slider.addEventListener('input', e => {
         const frame_num = parseInt(e.target.value);
         chart.set_frame(frame_num);
+        gen_nr.innerText = frame_num+1;
     });
 });
 
 class CAChart {
     constructor() {
         this.colors = [
-            '#FF0000',
-            '#00FF00',
-            '#0000FF',
+            '#D81B60',
+            '#1E88E5',
+            '#FFC107',
         ];
         this.frames = [];
 
@@ -109,6 +112,10 @@ class CAChart {
     
     set_frame(frame_num) {
         this.ctx.putImageData(this.frames[frame_num], 0, 0);
+    }
+
+    num_frames() {
+        return this.frames.length;
     }
 }
 
