@@ -10,6 +10,8 @@ async def handle_index(request):
 
 async def poll_results(pipe, ws):
     while True:
+        if ws.closed:
+            return
         if not pipe.poll():
             await asyncio.sleep(0.1)
             continue
@@ -37,10 +39,10 @@ async def handle_websocket(request):
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
+                await ws.close()
                 if pipe:
                     pipe.send(None)
                     await poll_task
-                await ws.close()
                 continue
             payload = msg.json()
             if payload['type'] == 'start':

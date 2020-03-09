@@ -6,19 +6,24 @@
     </head>
     <body>
         <style>
-            #input-container {
-                margin: 10px;
+            .input-container {
+                width: 400px;
+                display: flex;
+                flex-direction: row;
             }
-            #input-container > div  > label {
-                margin: 5px 0 5px 0;
+            .input-container > div {
+                flex: 1;
+                text-align: center;
             }
-            #input-container > div  > input {
-                margin: 5px 10px 5px 0;
+            .params-container div {
+                width: 80%;
+                display: inline-block;
+                text-align: right;
             }
-            #input-container > div  > button {
-                margin: 5px 10px 5px 0;
+            .params-container input {
+                width: 50%;
             }
-            #canvas-container {
+            .canvas-container {
                 width: 400px;
             }
             #canvas {
@@ -30,25 +35,37 @@
                 width: 100%;
             }
         </style>
-        <div id="input-container">
-            <div>
-                <label for="n_input">N</label>
-                <input type="number" name="n_input" id="n_input" value="100" min=0>
-                <label for="p_input">p</label>
-                <input type="number" name="p_input" id="p_input" value="0.333" min="0", max="1" step="0.001">
-                <label for="q_input">q</label>
-                <input type="number" name="q_input" id="q_input" value="0.333" min="0" max="1" step="0.001">
+        <div class="input-container">
+            <div class="params-container">
+                <div>
+                    <label for="size_input">Size:</label>
+                    <input type="number" name="size_input" id="size_input" value="256" min=0>
+                </div>
+                <div>
+                    <label for="pred_input">Predators:</label>
+                    <input type="number" name="pred_input" id="pred_input" value="0.02" min="0", max="1" step="0.001">
+                </div>
+                <div>
+                    <label for="prey_input">Prey:</label>
+                    <input type="number" name="prey_input" id="prey_input" value="0.2" min="0" max="1" step="0.001">
+                </div>
+                <div>
+                    <label for="plant_input">Plants:</label>
+                    <input type="number" name="plant_input" id="plant_input" value="0.78" readonly>
+                </div>
             </div>
             <div>
-                <button type="button" id="start_ca">Start CA</button>
-                <button type="button" id="stop_ca">Stop CA</button>
-                <span>
-                    <span>generation number: </span>
+                <div>
+                    <button type="button" id="start_ca">Start CA</button>
+                    <button type="button" id="stop_ca">Stop CA</button>
+                </div>
+                <div>
+                    <span>Generation number: </span>
                     <span id="gen_nr">0</span>
-                </span>
+                </div>
             </div>
         </div>
-        <div id="canvas-container">
+        <div class="canvas-container">
             <canvas id="canvas">
             </canvas>
             <input type="range" name="frame" id="frame_slider" min="0" value="0" disabled>

@@ -1,12 +1,12 @@
 window.addEventListener('load', () => {
-    const n_input         = document.getElementById('n_input');
-    const p_input         = document.getElementById('p_input');
-    const q_input         = document.getElementById('q_input');
+    const size_input      = document.getElementById('size_input');
+    const pred_input      = document.getElementById('pred_input');
+    const prey_input      = document.getElementById('prey_input');
+    const plant_input     = document.getElementById('plant_input');
     const start_ca_button = document.getElementById('start_ca');
     const stop_ca_button  = document.getElementById('stop_ca');
     const frame_slider    = document.getElementById('frame_slider');
-
-    const gen_nr = document.getElementById('gen_nr');
+    const gen_nr          = document.getElementById('gen_nr');
 
     const chart = new CAChart();
     const socket = new ReconnectingJSONWebsocket('ws://localhost:8080/socket');
@@ -34,9 +34,9 @@ window.addEventListener('load', () => {
     start_ca_button.addEventListener('click', () => {
         socket.send({
             type: 'start',
-            n: parseInt(n_input.value),
-            p: parseFloat(p_input.value),
-            q: parseFloat(q_input.value),
+            n: parseInt(size_input.value),
+            p: parseFloat(pred_input.value),
+            q: parseFloat(prey_input.value),
         });
     });
     stop_ca_button.addEventListener('click', () => {
@@ -45,19 +45,21 @@ window.addEventListener('load', () => {
         });
     });
 
-    p_input.addEventListener('input', e => {
+    pred_input.addEventListener('input', e => {
         p = parseFloat(e.target.value);
-        q = parseFloat(q_input.value);
+        q = parseFloat(prey_input.value);
         if (p + q > 1) {
-            q_input.value = (1-p).toFixed(3);
+            prey_input.value = (1-p).toFixed(3);
         }
+        plant_input.value = 1-p-q;
     });
-    q_input.addEventListener('input', e => {
+    prey_input.addEventListener('input', e => {
         q = parseFloat(e.target.value);
-        p = parseFloat(p_input.value);
+        p = parseFloat(pred_input.value);
         if (p + q > 1) {
-            p_input.value = (1-q).toFixed(3);
+            pred_input.value = (1-q).toFixed(3);
         }
+        plant_input.value = 1-p-q;
     });
 
     frame_slider.addEventListener('input', e => {
@@ -70,10 +72,16 @@ window.addEventListener('load', () => {
 class CAChart {
     constructor() {
         this.colors = [
-            '#D81B60',
-            '#1E88E5',
-            '#FFC107',
+            '#000000',
+            '#005500', 
+            '#f0e442',
+            '#dcc221',
+            '#e69f00', 
+            '#cc79a7',
+            '#56b4e9',
+            '#6c66ff'
         ];
+
         this.frames = [];
 
         this.n = null;
